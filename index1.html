@@ -1,0 +1,207 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Orbit / 03</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Space+Grotesk:wght@400;500;600;700&display=swap');
+
+    :root {
+      --ink: #132f4c;
+      --muted: #426177;
+      --line: rgba(19, 47, 76, .18);
+      --cyan: #00a6a6;
+      --coral: #f06449;
+      --night: #fff8d8;
+    }
+
+    * { box-sizing: border-box; }
+    html, body { margin: 0; min-height: 100%; background: linear-gradient(125deg, #c8f7ff 0%, #fff8d8 48%, #ffd2c1 100%); }
+    body { overflow: hidden; color: var(--ink); font-family: 'Space Grotesk', sans-serif; }
+    #stage { position: fixed; inset: 0; }
+    canvas { display: block; width: 100%; height: 100%; }
+
+    .grain, .vignette { position: fixed; inset: 0; pointer-events: none; }
+    .grain { opacity: .06; background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.55'/%3E%3C/svg%3E"); mix-blend-mode: multiply; }
+    .vignette { background: radial-gradient(circle at 50% 44%, transparent 22%, rgba(255,255,255,.06) 52%, rgba(255,151,114,.18) 100%); }
+
+    .interface { position: fixed; inset: 0; padding: 28px 34px; display: flex; flex-direction: column; justify-content: space-between; pointer-events: none; }
+    .topbar, .bottomline { display: flex; justify-content: space-between; align-items: center; gap: 20px; }
+    .brand { font: 500 11px/1 'DM Mono', monospace; letter-spacing: .16em; text-transform: uppercase; }
+    .status { display: flex; align-items: center; gap: 9px; font: 400 10px/1 'DM Mono', monospace; color: var(--muted); letter-spacing: .13em; text-transform: uppercase; }
+    .status i { width: 7px; height: 7px; border-radius: 50%; background: var(--cyan); box-shadow: 0 0 16px var(--cyan); animation: pulse 2s infinite; }
+    .title-block { max-width: 420px; margin-top: auto; margin-bottom: auto; transform: translateY(3vh); }
+    .eyebrow { margin: 0 0 19px; color: var(--cyan); font: 500 10px/1 'DM Mono', monospace; letter-spacing: .2em; text-transform: uppercase; }
+    h1 { margin: 0; font-size: clamp(3.2rem, 8vw, 7.5rem); line-height: .84; letter-spacing: -.08em; font-weight: 600; }
+    h1 span { display: block; color: transparent; -webkit-text-stroke: 1px rgba(19,47,76,.7); }
+    .description { max-width: 270px; margin: 26px 0 0 4px; color: var(--muted); font: 400 11px/1.55 'DM Mono', monospace; }
+    .bottomline { color: var(--muted); font: 400 10px/1 'DM Mono', monospace; letter-spacing: .1em; text-transform: uppercase; }
+    .coordinates { color: var(--ink); }
+    .hint { display: flex; align-items: center; gap: 10px; }
+    .hint::before { content: ''; width: 28px; height: 1px; background: var(--coral); box-shadow: 0 0 12px var(--coral); }
+
+    @keyframes pulse { 50% { opacity: .35; transform: scale(.7); } }
+    @media (max-width: 620px) {
+      .interface { padding: 22px 20px; }
+      .title-block { transform: translateY(7vh); }
+      h1 { font-size: clamp(3.3rem, 17vw, 6rem); }
+      .bottomline { align-items: flex-end; }
+      .hint { max-width: 126px; line-height: 1.4; }
+    }
+  </style>
+</head>
+<body>
+  <div id="stage"></div>
+  <div class="grain"></div>
+  <div class="vignette"></div>
+  <main class="interface">
+    <div class="topbar">
+      <div class="brand">ORBIT / 03</div>
+      <div class="status"><i></i> Live simulation</div>
+    </div>
+    <section class="title-block">
+      <p class="eyebrow">Motion study — 001</p>
+      <h1>Shape<br><span>the void.</span></h1>
+      <p class="description">A small study in weight, light, and orbital rhythm. Move your cursor through the field.</p>
+    </section>
+    <div class="bottomline">
+      <span class="coordinates" id="coordinates">X 00.00 / Y 00.00</span>
+      <span class="hint">Drag to disturb the orbit</span>
+    </div>
+  </main>
+
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.161.0/build/three.module.js"
+      }
+    }
+  </script>
+  <script type="module">
+    import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.161.0/build/three.module.js';
+    import { EffectComposer } from 'https://cdn.jsdelivr.net/npm/three@0.161.0/examples/jsm/postprocessing/EffectComposer.js';
+    import { RenderPass } from 'https://cdn.jsdelivr.net/npm/three@0.161.0/examples/jsm/postprocessing/RenderPass.js';
+    import { UnrealBloomPass } from 'https://cdn.jsdelivr.net/npm/three@0.161.0/examples/jsm/postprocessing/UnrealBloomPass.js';
+
+    const stage = document.querySelector('#stage');
+    const coordinates = document.querySelector('#coordinates');
+    const scene = new THREE.Scene();
+    scene.background = null;
+    scene.fog = new THREE.FogExp2(0xfff8d8, 0.035);
+
+    const camera = new THREE.PerspectiveCamera(38, innerWidth / innerHeight, .1, 100);
+    camera.position.set(0, 0, 8.8);
+
+    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+    renderer.setClearColor(0x000000, 0);
+    renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+    renderer.setSize(innerWidth, innerHeight);
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.2;
+    stage.appendChild(renderer.domElement);
+
+    const composer = new EffectComposer(renderer);
+    composer.addPass(new RenderPass(scene, camera));
+    const bloom = new UnrealBloomPass(new THREE.Vector2(innerWidth, innerHeight), .55, .65, .85);
+    composer.addPass(bloom);
+
+    const cyan = new THREE.Color('#00d6c9');
+    const coral = new THREE.Color('#ff704d');
+    const white = new THREE.Color('#743cff');
+    const root = new THREE.Group();
+    scene.add(root);
+
+    const core = new THREE.Mesh(
+      new THREE.IcosahedronGeometry(1.08, 5),
+      new THREE.MeshBasicMaterial({ color: 0x164b72, wireframe: true, transparent: true, opacity: .82 })
+    );
+    root.add(core);
+
+    const shell = new THREE.Mesh(
+      new THREE.IcosahedronGeometry(1.25, 2),
+      new THREE.MeshBasicMaterial({ color: cyan, wireframe: true, transparent: true, opacity: .12 })
+    );
+    root.add(shell);
+
+    const rings = [];
+    for (let i = 0; i < 4; i++) {
+      const ring = new THREE.Mesh(
+        new THREE.TorusGeometry(1.5 + i * .27, .008 + i * .003, 8, 160),
+        new THREE.MeshBasicMaterial({ color: i % 2 ? coral : cyan, transparent: true, opacity: .55 - i * .08 })
+      );
+      ring.rotation.set(Math.PI / 2 + i * .26, i * .43, i * .18);
+      root.add(ring);
+      rings.push(ring);
+    }
+
+    const knot = new THREE.Mesh(
+      new THREE.TorusKnotGeometry(.7, .018, 220, 8, 2, 3),
+      new THREE.MeshBasicMaterial({ color: white, transparent: true, opacity: .8 })
+    );
+    root.add(knot);
+
+    const starGeometry = new THREE.BufferGeometry();
+    const starCount = 1300;
+    const starPositions = new Float32Array(starCount * 3);
+    const starColors = new Float32Array(starCount * 3);
+    for (let i = 0; i < starCount; i++) {
+      const radius = 3.1 + Math.random() * 7;
+      const theta = Math.random() * Math.PI * 2;
+      const phi = Math.acos(2 * Math.random() - 1);
+      starPositions[i * 3] = radius * Math.sin(phi) * Math.cos(theta);
+      starPositions[i * 3 + 1] = radius * Math.cos(phi) * .7;
+      starPositions[i * 3 + 2] = radius * Math.sin(phi) * Math.sin(theta) - 2;
+      const color = Math.random() > .78 ? coral : (Math.random() > .45 ? cyan : white);
+      starColors[i * 3] = color.r; starColors[i * 3 + 1] = color.g; starColors[i * 3 + 2] = color.b;
+    }
+    starGeometry.setAttribute('position', new THREE.BufferAttribute(starPositions, 3));
+    starGeometry.setAttribute('color', new THREE.BufferAttribute(starColors, 3));
+    const stars = new THREE.Points(starGeometry, new THREE.PointsMaterial({ size: .018, vertexColors: true, transparent: true, opacity: .72, blending: THREE.AdditiveBlending }));
+    scene.add(stars);
+
+    const mouse = new THREE.Vector2();
+    const target = new THREE.Vector2();
+    let dragging = false;
+    addEventListener('pointermove', (event) => {
+      target.x = (event.clientX / innerWidth) * 2 - 1;
+      target.y = -(event.clientY / innerHeight) * 2 + 1;
+      coordinates.textContent = `X ${(target.x * 10).toFixed(2).padStart(5, '0')} / Y ${(target.y * 10).toFixed(2).padStart(5, '0')}`;
+    });
+    addEventListener('pointerdown', () => { dragging = true; });
+    addEventListener('pointerup', () => { dragging = false; });
+    addEventListener('resize', () => {
+      camera.aspect = innerWidth / innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(innerWidth, innerHeight);
+      composer.setSize(innerWidth, innerHeight);
+    });
+
+    const clock = new THREE.Clock();
+    function animate() {
+      const time = clock.getElapsedTime();
+      mouse.lerp(target, .045);
+      root.rotation.x = mouse.y * .34 + Math.sin(time * .27) * .06;
+      root.rotation.y = mouse.x * .42 + time * .12;
+      root.position.x = mouse.x * .22;
+      root.position.y = mouse.y * .16;
+      core.rotation.z = time * .16;
+      shell.rotation.x = -time * .09;
+      shell.rotation.z = time * .12;
+      knot.rotation.x = time * .38;
+      knot.rotation.y = -time * .28;
+      knot.scale.setScalar(1 + Math.sin(time * 1.4) * .045);
+      rings.forEach((ring, index) => {
+        ring.rotation.x += .002 + index * .0007;
+        ring.rotation.z -= .0012 + index * .0004;
+      });
+      stars.rotation.y = time * .006;
+      stars.rotation.x = Math.sin(time * .1) * .04;
+      bloom.strength = 1.08 + Math.sin(time * .7) * .12 + (dragging ? .22 : 0);
+      renderer.render(scene, camera);
+      requestAnimationFrame(animate);
+    }
+    animate();
+  </script>
+</body>
+</html>
