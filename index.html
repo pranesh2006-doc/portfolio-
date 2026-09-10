@@ -1,0 +1,264 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Juzz creates clear, memorable digital experiences for ideas with momentum.">
+  <title>Juzz — Make it memorable</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&display=swap');
+
+    :root {
+      --ink: #192522;
+      --muted: #68746f;
+      --paper: #f4f1e9;
+      --cream: #fffdf8;
+      --lime: #d8f36b;
+      --coral: #ff795f;
+      --line: rgba(25, 37, 34, .14);
+      --shadow: 0 20px 55px rgba(25, 37, 34, .11);
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      background: var(--paper);
+      font-family: 'Manrope', sans-serif;
+      line-height: 1.5;
+    }
+    a { color: inherit; text-decoration: none; }
+    .shell { width: min(1180px, calc(100% - 48px)); margin: 0 auto; }
+
+    header {
+      padding: 28px 0;
+      animation: rise .7s ease both;
+    }
+    .nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .logo {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 1.1rem;
+      font-weight: 800;
+      letter-spacing: -.05em;
+    }
+    .logo-mark {
+      display: grid;
+      place-items: center;
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      background: var(--ink);
+      color: var(--lime);
+      font-size: .75rem;
+      letter-spacing: 0;
+    }
+    .nav-links { display: flex; gap: 32px; font-size: .82rem; font-weight: 600; }
+    .nav-links a { opacity: .68; transition: opacity .2s ease; }
+    .nav-links a:hover { opacity: 1; }
+    .nav-cta {
+      border-bottom: 1px solid var(--ink);
+      font-size: .82rem;
+      font-weight: 700;
+      padding-bottom: 3px;
+    }
+
+    .hero {
+      min-height: 650px;
+      display: grid;
+      grid-template-columns: 1.1fr .9fr;
+      align-items: center;
+      gap: 70px;
+      padding: 74px 0 112px;
+    }
+    .eyebrow, .mono {
+      font-family: 'DM Mono', monospace;
+      font-size: .72rem;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+    .eyebrow { display: flex; align-items: center; gap: 10px; color: var(--muted); margin-bottom: 24px; }
+    .eyebrow::before { content: ''; width: 28px; height: 1px; background: var(--coral); }
+    h1 {
+      max-width: 720px;
+      margin: 0;
+      font-size: clamp(3.8rem, 8vw, 7.8rem);
+      line-height: .9;
+      letter-spacing: -.095em;
+      font-weight: 800;
+    }
+    .hero-copy {
+      max-width: 390px;
+      margin: 32px 0 0 7px;
+      color: var(--muted);
+      font-size: 1rem;
+    }
+    .button {
+      display: inline-flex;
+      align-items: center;
+      gap: 16px;
+      margin-top: 32px;
+      padding: 14px 18px 14px 20px;
+      background: var(--ink);
+      color: var(--cream);
+      font-size: .8rem;
+      font-weight: 700;
+      transition: transform .2s ease, background .2s ease;
+    }
+    .button:hover { transform: translateY(-3px); background: var(--coral); }
+    .button span { display: grid; place-items: center; width: 24px; height: 24px; border: 1px solid rgba(255,255,255,.45); border-radius: 50%; }
+
+    .hero-art { position: relative; min-height: 455px; }
+    .art-circle {
+      position: absolute;
+      width: min(30vw, 370px);
+      height: min(30vw, 370px);
+      right: 5%;
+      top: 14%;
+      border-radius: 50%;
+      background: var(--lime);
+      box-shadow: 20px 20px 0 var(--coral);
+      animation: float 6s ease-in-out infinite;
+    }
+    .art-circle::after {
+      content: '';
+      position: absolute;
+      inset: 28%;
+      border: 1px solid var(--ink);
+      border-radius: 50%;
+    }
+    .art-word {
+      position: absolute;
+      z-index: 1;
+      right: -3%;
+      top: 39%;
+      font-size: clamp(3rem, 6.5vw, 6rem);
+      line-height: .8;
+      font-weight: 800;
+      letter-spacing: -.1em;
+      transform: rotate(-14deg);
+    }
+    .art-tag {
+      position: absolute;
+      right: 3%;
+      bottom: 12%;
+      padding: 10px 13px;
+      background: var(--cream);
+      border: 1px solid var(--line);
+      box-shadow: var(--shadow);
+      font-size: .7rem;
+      font-weight: 700;
+      transform: rotate(5deg);
+    }
+    .art-cross { position: absolute; top: 6%; left: 6%; color: var(--coral); font-size: 2.8rem; }
+
+    .ticker {
+      overflow: hidden;
+      margin: 0 calc((100vw - 100%) / -2);
+      padding: 17px 0;
+      color: var(--paper);
+      background: var(--ink);
+      white-space: nowrap;
+    }
+    .ticker-track { display: inline-flex; align-items: center; gap: 28px; animation: marquee 22s linear infinite; }
+    .ticker-item { font-size: .75rem; font-weight: 700; letter-spacing: .04em; }
+    .ticker-dot { color: var(--lime); font-size: 1.2rem; }
+
+    .services { padding: 115px 0 130px; }
+    .section-heading { display: flex; justify-content: space-between; align-items: end; padding-bottom: 34px; border-bottom: 1px solid var(--line); }
+    h2 { max-width: 560px; margin: 0; font-size: clamp(2rem, 4vw, 3.8rem); line-height: .98; letter-spacing: -.07em; }
+    .section-note { max-width: 220px; margin: 0; color: var(--muted); font-size: .84rem; }
+    .service-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: var(--line); margin-top: 1px; }
+    .service { min-height: 270px; padding: 28px; background: var(--paper); transition: background .25s ease; }
+    .service:hover { background: var(--lime); }
+    .service-number { color: var(--coral); }
+    .service h3 { margin: 67px 0 12px; font-size: 1.4rem; letter-spacing: -.05em; }
+    .service p { max-width: 250px; color: var(--muted); font-size: .84rem; }
+
+    .closing {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 35px;
+      padding: 62px 0 75px;
+      border-top: 1px solid var(--line);
+    }
+    .closing h2 { font-size: clamp(2.5rem, 5vw, 5rem); }
+    .closing-copy { align-self: end; max-width: 350px; color: var(--muted); font-size: .9rem; }
+    footer { display: flex; justify-content: space-between; padding: 22px 0 28px; border-top: 1px solid var(--line); color: var(--muted); font-size: .72rem; }
+
+    @keyframes rise { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes float { 0%, 100% { transform: translateY(0) rotate(0); } 50% { transform: translateY(-13px) rotate(4deg); } }
+    @keyframes marquee { to { transform: translateX(-50%); } }
+
+    @media (max-width: 760px) {
+      .shell { width: min(100% - 32px, 560px); }
+      .nav-links { display: none; }
+      .hero { display: block; min-height: auto; padding: 70px 0 90px; }
+      .hero-copy { margin-left: 0; }
+      .hero-art { min-height: 340px; margin-top: 45px; }
+      .art-circle { width: 270px; height: 270px; right: 9%; }
+      .art-word { right: 0; }
+      .section-heading { display: block; }
+      .section-note { margin-top: 20px; }
+      .service-grid { grid-template-columns: 1fr; }
+      .service { min-height: 220px; }
+      .service h3 { margin-top: 45px; }
+      .closing { grid-template-columns: 1fr; padding-top: 70px; }
+      .closing-copy { align-self: auto; }
+    }
+  </style>
+</head>
+<body>
+  <header class="shell">
+    <nav class="nav" aria-label="Main navigation">
+      <a class="logo" href="#top"><span class="logo-mark">J</span> juzz</a>
+      <div class="nav-links"><a href="#work">What we do</a><a href="#about">About</a></div>
+      <a class="nav-cta" href="mailto:hello@juzz.studio">Start a project</a>
+    </nav>
+  </header>
+
+  <main id="top">
+    <section class="hero shell">
+      <div>
+        <div class="eyebrow">Independent creative studio</div>
+        <h1>Make it<br><em>memorable.</em></h1>
+        <p class="hero-copy">Juzz turns good ideas into clear, characterful brands and digital experiences people want to spend time with.</p>
+        <a class="button" href="mailto:hello@juzz.studio">Let's make something <span>↗</span></a>
+      </div>
+      <div class="hero-art" aria-hidden="true">
+        <div class="art-cross">✳</div>
+        <div class="art-circle"></div>
+        <div class="art-word">JUZZ</div>
+        <div class="art-tag">Ideas with momentum →</div>
+      </div>
+    </section>
+
+    <div class="ticker" aria-hidden="true"><div class="ticker-track"><span class="ticker-item">Strategy</span><span class="ticker-dot">✳</span><span class="ticker-item">Identity</span><span class="ticker-dot">✳</span><span class="ticker-item">Digital</span><span class="ticker-dot">✳</span><span class="ticker-item">Strategy</span><span class="ticker-dot">✳</span><span class="ticker-item">Identity</span><span class="ticker-dot">✳</span><span class="ticker-item">Digital</span><span class="ticker-dot">✳</span></div></div>
+
+    <section class="services shell" id="work">
+      <div class="section-heading">
+        <h2>Small team.<br>Big point of view.</h2>
+        <p class="section-note">We find the sharpest version of your idea, then give it a world to live in.</p>
+      </div>
+      <div class="service-grid">
+        <article class="service"><span class="mono service-number">01 / Think</span><h3>Strategy &amp; direction</h3><p>Positioning, naming and a plan that makes the next move feel obvious.</p></article>
+        <article class="service"><span class="mono service-number">02 / Shape</span><h3>Brand identity</h3><p>Distinctive visual systems with enough flexibility to grow with you.</p></article>
+        <article class="service"><span class="mono service-number">03 / Build</span><h3>Digital experiences</h3><p>Websites and products that feel effortless to use and hard to forget.</p></article>
+      </div>
+    </section>
+
+    <section class="closing shell" id="about">
+      <h2>Bring the spark.<br>We’ll bring the shape.</h2>
+      <div class="closing-copy"><p>Juzz is a small, senior-led studio for founders and teams who care about the details. No layers, no filler, no beige solutions.</p><a class="button" href="mailto:hello@juzz.studio">hello@juzz.studio <span>↗</span></a></div>
+    </section>
+  </main>
+
+  <footer class="shell"><span>© 2026 Juzz Studio</span><span>Made with intent.</span></footer>
+</body>
+</html>
